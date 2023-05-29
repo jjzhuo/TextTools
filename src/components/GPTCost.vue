@@ -1,110 +1,65 @@
 <template>
   <v-main>
-    GPT COST estimate
     <v-container fluid>
       <v-row>
-        <v-col>
-          <v-btn @click="share">Share</v-btn>
-          <v-row v-if="sharedLink">
-            <a :href="sharedLink">{{ sharedLink }}</a>
-          </v-row>
+        <v-col cols="8">
+          <v-textarea rows="20" row-height="10" v-model="text" class="input-area" />
         </v-col>
-      </v-row>
-      <v-row>
-        <v-col cols="12">
-          <label>Version 1</label>
-          <v-textarea auto-grow rows="20" row-height="10" v-model="text1" class="input-area" />
+        <v-col cols="4">
+            <v-row>Number of tokens: {{ tokenCount }}</v-row>
+            <v-row>Embedding cost: ${{ embedding_cost.toFixed(4) }}</v-row>
+            <v-row>GPT-3.5-turbo prompt cost: ${{ gpt_35_cost.toFixed(4) }}</v-row>
+            <v-row>GPT-4-8k prompt cost: ${{ gpt_4_8k_cost.toFixed(4) }}</v-row>
+            <v-row>GPT-4-32k prompt cost: ${{ gpt_4_32k_cost.toFixed(4) }}</v-row>
         </v-col>
-
-      </v-row>
-
-      <v-row>
-        <v-col cols="12" v-if="differences">
-          <pre>
-          <div v-html="differences[0]" class="diff-output"></div>
-        </pre>
-        <pre>
-          <div v-html="differences[1]" class="diff-output"></div>
-        </pre>
-        </v-col>
-      </v-row>
+    </v-row>
     </v-container>
   </v-main>
 </template>
 
 <script lang="ts">
-import { computeDiff } from '../differ.js';
-import axios from 'axios';
-
+import { get_encoding, encoding_for_model } from "@dqbd/tiktoken";
+const enc = encoding_for_model("ada");
 interface Data {
-  text1: string;
-  text2: string;
-  differences: [string, string] | null;
-  sharedLink: string;
+  text: string;
+  tokenCount: number;
 }
 
 export default {
   data(): Data {
     return {
-      text1: '',
-      text2: '',
-      differences: null,
-      sharedLink: '',
+      text: '',
+      tokenCount: 0
     };
   },
-  methods: {
-    async share() {
-      const response = await axios.post('/api/save_diff', {
-        text1: this.text1,
-        text2: this.text2,
-      });
-
-      const id = response.data.id;
-      this.sharedLink = window.location.origin + '/diff/' + id;
+  computed: {
+    embedding_cost() {
+        return this.tokenCount * 0.0004 / 1000
     },
-    async loadSharedText(id: string) {
-      const response = await axios.get('/api/diff/' + id);
-      this.text1 = response.data.text1;
-      this.text2 = response.data.text2;
-      this.differences = computeDiff(this.text1, this.text2);
+    gpt_35_cost() {
+        return this.tokenCount * 0.002 / 1000
     },
-  },
-  created() {
-    const id = this.$route.params.id as string | undefined;
-    console.log(id);
-    if (id) {
-      this.loadSharedText(id);
+    gpt_4_8k_cost() {
+        return this.tokenCount * 0.03 / 1000
+    },
+    gpt_4_32k_cost() {
+        return this.tokenCount * 0.06 / 1000
     }
   },
+  methods: {
+    
+  },
   watch: {
-    text1(newVal, oldVal) {
+    text(newVal, oldVal) {
       if (newVal !== oldVal) {
-        this.differences = computeDiff(this.text1, this.text2);
+        this.tokenCount = enc.encode(this.text).length;
       }
-    },
-    text2(newVal, oldVal) {
-      if (newVal !== oldVal) {
-        this.differences = computeDiff(this.text1, this.text2);
-      }
-    },
+    }
   },
 };
 </script>
 
 <style scoped>
-.diff-output {
-  text-align: left;
-  white-space: pre-wrap;
-  font-family: monospace;
-  word-wrap: break-word;
-}
 
->>>.diff-removed {
-  background-color: #FF957E;
-}
-
->>>.diff-added {
-  background-color: #8EE0B6;
-}
 </style>
   
