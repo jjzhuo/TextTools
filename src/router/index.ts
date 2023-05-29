@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import DiffTool from "../components/DiffTool.vue"
+import GPTCost from "../components/GPTCOst.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,12 +8,17 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView
+      component: DiffTool
     },
     {
       path: '/diff/:id?',
       name: 'Diff',
-      component: HomeView
+      component: DiffTool
+    },
+    {
+      path: '/cost',
+      name: 'GPTCost',
+      component: GPTCost
     }
   ]
 })

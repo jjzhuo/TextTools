@@ -3,8 +3,19 @@ import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
+  <v-app>
+  <v-app-bar :elevation="2">
+    
+      <v-app-bar-nav-icon></v-app-bar-nav-icon>
+    
 
+      <v-app-bar-title>Text Tools</v-app-bar-title>
+      <v-btn to="/diff">Text Compare</v-btn>
+      <v-btn to="/cost">GPT Cost Estimate</v-btn>
+      <v-spacer></v-spacer>
+  </v-app-bar>
   <RouterView />
+  </v-app>
 </template>
 
 <style scoped>
